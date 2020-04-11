@@ -1,0 +1,53 @@
+---
+title: "data_exploration"
+author: "Elias"
+date: "03/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(haven)
+library(janitor)
+library(readxl)
+library(tidyverse)
+```
+
+
+```{r}
+usa_overdose <- read.csv("raw_data/usa/overdose_death_count.csv") %>% 
+  clean_names() 
+                         
+usa_overdose$data_value <- as.numeric(as.character(usa_overdose$data_value))
+
+
+glimpse(usa_overdose)
+```
+
+```{r}
+usa_overdose %>% 
+  filter(indicator == "Number of Drug Overdose Deaths", !is.na(data_value),
+         year != 2019) %>%
+  group_by(year) %>%
+  summarize(deaths = sum(data_value))
+```
+
+
+```{r}
+port_od <- read_xlsx("raw_data/portugal/overdose_deaths.xlsx") %>% 
+  filter(Country == "Portugal") %>% 
+  pivot_longer(cols = 3:20, names_to = "year", values_to = "deaths") %>% 
+  select(year, deaths) 
+
+port_od$year <- as.numeric(port_od$year)
+
+ggplot(port_od, aes(x = year, y = deaths)) +
+  geom_line(color = "red") +
+  theme_classic() +
+  labs(
+    title = "Drug Overdose Deaths Trend in Portugal",
+    caption = "source: EMCDDA Data"
+  )
+```
+
